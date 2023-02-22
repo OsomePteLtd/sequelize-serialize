@@ -1,9 +1,9 @@
-const Sequelize = require("sequelize");
+const Sequelize = require('sequelize');
 
-const sequelize = new Sequelize("sqlite::memory:");
+const sequelize = new Sequelize('sqlite::memory:');
 
 const DUMMY_VALUES = {
-  a: "x",
+  a: 'x',
   b: 777,
   c: true,
 };
@@ -17,7 +17,7 @@ function createModel() {
       b: Sequelize.DataTypes.INTEGER,
       c: Sequelize.DataTypes.BOOLEAN,
     },
-    { sequelize }
+    { sequelize },
   );
 
   return TestModel;
