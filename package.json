@@ -6,7 +6,7 @@
   "scripts": {
     "lint": "eslint .",
     "precommit": "npm run lint",
-    "test": "jest"
+    "test": "jest --coverage"
   },
   "repository": {
     "type": "git",
@@ -35,9 +35,9 @@
     "eslint": "^5.4.0",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-import": "^2.14.0",
-    "jest": "^23.6.0",
-    "sequelize": "^5.15.1",
-    "sqlite3": "^4.0.6"
+    "jest": "^29.4.3",
+    "sequelize": "^6.28.1",
+    "sqlite3": "^5.1.4"
   },
   "directories": {
     "lib": "lib",
