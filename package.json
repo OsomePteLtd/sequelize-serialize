@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Ajaxy/sequelize-serialize.git"
+    "url": "git+https://github.com/OsomePteLtd/sequelize-serialize.git"
   },
   "keywords": [
     "sequelize",
@@ -27,10 +27,6 @@
   ],
   "author": "Alexander Zinchuk (alexander@zinchuk.com)",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/Ajaxy/sequelize-serialize/issues"
-  },
-  "homepage": "https://github.com/Ajaxy/sequelize-serialize#readme",
   "devDependencies": {
     "eslint": "^5.4.0",
     "eslint-config-airbnb-base": "^13.1.0",

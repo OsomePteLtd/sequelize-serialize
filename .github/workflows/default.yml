@@ -1,0 +1,137 @@
+name: CI
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  setup:
+    name: Set up
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Cancel previous workflow runs
+        uses: styfle/cancel-workflow-action@0.11.0
+        with:
+          access_token: ${{ github.token }}
+
+      - name: Load current commit
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Read nvmrc
+        id: read-nvmrc
+        run: echo "version=$(cat .nvmrc)" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ steps.read-nvmrc.outputs.version }}
+
+      - name: Install dependencies
+        run: npm ci
+
+  static-checks:
+    name: Static checks
+    needs: setup
+    if: ${{ !contains(github.ref, 'refs/tags/') }}
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Load current commit
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Read nvmrc
+        id: read-nvmrc
+        run: echo "version=$(cat .nvmrc)" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ steps.read-nvmrc.outputs.version }}
+
+      - name: Install dependencies and check package-lock.json
+        run: |
+          cp package-lock.json package-lock.json.orig
+          npm install
+          if ! diff --color=always package-lock.json.orig package-lock.json ; then
+            echo "package-lock.json changed, failing build"
+            exit 1
+          fi
+
+      - name: Linter
+        run: npm run lint
+
+  tests:
+    name: Unit tests
+    needs: setup
+    if: ${{ !contains(github.ref, 'refs/tags/') }}
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Load current commit
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Read nvmrc
+        id: read-nvmrc
+        run: echo "version=$(cat .nvmrc)" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ steps.read-nvmrc.outputs.version }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests and check coverage
+        run: npm run test
+
+  publish:
+    name: Publish package
+    needs:
+      - setup
+    runs-on: ubuntu-20.04
+    if: contains(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Load current commit
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Read nvmrc
+        id: read-nvmrc
+        run: echo "version=$(cat .nvmrc)" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ steps.read-nvmrc.outputs.version }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ steps.read-nvmrc.outputs.version }}
+          registry-url: 'https://npm.pkg.github.com'
+
+      - name: Publish package
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
