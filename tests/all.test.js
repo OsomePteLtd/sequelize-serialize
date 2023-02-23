@@ -111,9 +111,6 @@ describe('Serializers', () => {
                 c: {
                   type: 'boolean',
                 },
-                b: {
-                  type: 'integer',
-                },
               },
             },
             {
@@ -129,7 +126,7 @@ describe('Serializers', () => {
       },
     };
 
-    const instanceA = new ModelA({ ...DUMMY_VALUES });
+    const instanceA = new ModelA(DUMMY_VALUES);
     const instanceB = new ModelB(DUMMY_VALUES);
     instanceB.modelA = instanceA;
 
