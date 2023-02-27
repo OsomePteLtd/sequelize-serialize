@@ -92,15 +92,140 @@ describe('Serializers', () => {
       .toEqual({ a: 'x', modelsB: [{ b: 777, c: true }, { b: 777, c: true }] });
   });
 
-  it('Serialize schema with empry properties', () => {
+  it('Includes `belongsTo` with anyOf', () => {
+    const ModelA = createModel();
+    const ModelB = createModel();
+    ModelB.belongsTo(ModelA);
+
     const schema = {
       type: 'object',
+      properties: {
+        a: {
+          type: 'string',
+        },
+        modelA: {
+          anyOf: [
+            {
+              type: 'object',
+              properties: {
+                c: {
+                  type: 'boolean',
+                },
+              },
+            },
+            {
+              type: 'object',
+              properties: {
+                b: {
+                  type: 'integer',
+                },
+              },
+            },
+          ],
+        },
+      },
     };
-    const row = {
-      some_field: 1,
+
+    const instanceA = new ModelA(DUMMY_VALUES);
+    const instanceB = new ModelB(DUMMY_VALUES);
+    instanceB.modelA = instanceA;
+
+    expect(serialize(instanceB, schema)).toEqual({
+      a: 'x',
+      modelA: { b: 777, c: true },
+    });
+  });
+
+  it('Includes `hasMany` with anyOf', () => {
+    const ModelA = createModel();
+    const ModelB = createModel();
+    ModelA.hasMany(ModelB);
+
+    const schema = {
+      type: 'object',
+      properties: {
+        a: {
+          type: 'string',
+        },
+        modelsB: {
+          type: 'array',
+          items: {
+            anyOf: [
+              {
+                type: 'object',
+                properties: {
+                  b: {
+                    anyOf: [
+                      {
+                        type: 'string',
+                        format: 'datetime',
+                      },
+                      {
+                        type: 'null',
+                      },
+                    ],
+                  },
+                },
+              },
+              {
+                type: 'object',
+                properties: {
+                  c: {
+                    type: 'boolean',
+                  },
+                },
+              },
+            ],
+          },
+        },
+      },
     };
-    const data = [row];
-    const result = serialize(data, schema);
-    expect(result[0]).toEqual(row);
+
+    const instanceA = new ModelA(DUMMY_VALUES);
+    const instanceB1 = new ModelB(DUMMY_VALUES);
+    const instanceB2 = new ModelB(DUMMY_VALUES);
+    instanceA.modelsB = [instanceB1, instanceB2];
+
+    expect(serialize(instanceA, schema)).toEqual({
+      a: 'x',
+      modelsB: [
+        { b: 777, c: true },
+        { b: 777, c: true },
+      ],
+    });
+  });
+
+  it('Object schema without properties', () => {
+    const TestModel = createModel();
+
+    const schema = {
+      type: 'object',
+      properties: {
+        a: {
+          anyOf: [
+            {
+              type: 'object',
+            },
+            {
+              type: 'null',
+            },
+          ],
+        },
+      },
+      additionalProperties: false,
+    };
+
+    const instance = new TestModel({ ...DUMMY_VALUES, a: {} });
+    expect(serialize(instance, schema)).toEqual({ a: {} });
+  });
+
+  it('Resource as empty array', () => {
+    const schema = {
+      type: 'object',
+      properties: {},
+    };
+
+    expect(serialize([], schema))
+      .toEqual([]);
   });
 });

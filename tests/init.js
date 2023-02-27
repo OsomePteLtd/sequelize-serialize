@@ -1,15 +1,6 @@
 const Sequelize = require('sequelize');
-const serialize = require('../lib/index');
 
-const sequelize = new Sequelize({
-  dialect: 'sqlite',
-});
-
-const VARIOUS_FIELDS = {
-  a: Sequelize.DataTypes.STRING,
-  b: Sequelize.DataTypes.INTEGER,
-  c: Sequelize.DataTypes.BOOLEAN,
-};
+const sequelize = new Sequelize('sqlite::memory:');
 
 const DUMMY_VALUES = {
   a: 'x',
@@ -18,10 +9,16 @@ const DUMMY_VALUES = {
 };
 
 function createModel() {
-  class TestModel extends Sequelize.Model {
-  }
+  class TestModel extends Sequelize.Model {}
 
-  TestModel.init(VARIOUS_FIELDS, { sequelize });
+  TestModel.init(
+    {
+      a: Sequelize.DataTypes.STRING,
+      b: Sequelize.DataTypes.INTEGER,
+      c: Sequelize.DataTypes.BOOLEAN,
+    },
+    { sequelize },
+  );
 
   return TestModel;
 }
