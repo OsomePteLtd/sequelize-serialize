@@ -100,9 +100,7 @@ describe('Serializers', () => {
     const schema = {
       type: 'object',
       properties: {
-        a: {
-          type: 'string',
-        },
+        a: { anyOf: [{ type: 'array', items: { type: 'string' } }, { type: 'null' }] },
         modelA: {
           anyOf: [
             {
