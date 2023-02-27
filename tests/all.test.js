@@ -226,4 +226,16 @@ describe('Serializers', () => {
     expect(serialize([], schema))
       .toEqual([]);
   });
+
+  it('Empty schema', () => {
+    const TestModel = createModel();
+    const schema = {};
+    const instance = new TestModel(DUMMY_VALUES);
+    expect(serialize(instance, schema)).toEqual({
+      a: 'x',
+      b: 777,
+      c: true,
+      id: null,
+    });
+  });
 });
