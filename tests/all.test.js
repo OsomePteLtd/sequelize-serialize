@@ -1,5 +1,6 @@
-const { createModel, DUMMY_VALUES } = require('./init');
 const Sequelize = require('sequelize');
+const { createModel, DUMMY_VALUES } = require('./init');
+
 const sequelize = new Sequelize('sqlite::memory:');
 const serialize = require('../lib/index');
 
@@ -242,7 +243,7 @@ describe('Serializers', () => {
   });
 
   it('anyOf with conflicting subproperties', () => {
-    class ModelA extends Sequelize.Model {}
+    class ModelA extends Sequelize.Model { }
 
     ModelA.init(
       {
@@ -250,7 +251,7 @@ describe('Serializers', () => {
       },
       { sequelize },
     );
-  
+
     const schema = {
       type: 'object',
       properties: {
@@ -260,12 +261,15 @@ describe('Serializers', () => {
               type: 'object',
               properties: {
                 arr: {
-                  type: 'object',
-                  properties: {
-                    foo: {
-                      type: 'boolean'
-                    }
-                  }
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      foo: {
+                        type: 'boolean',
+                      },
+                    },
+                  },
                 },
               },
             },
@@ -273,30 +277,33 @@ describe('Serializers', () => {
               type: 'object',
               properties: {
                 arr: {
-                  type: 'object',
-                  properties: {
-                    bar: {
-                      type: 'boolean'
-                    }
-                  }
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      bar: {
+                        type: 'boolean',
+                      },
+                    },
+                  },
                 },
               },
             },
-          ]
+          ],
         },
       },
     };
 
     const instanceA = new ModelA({
       a: {
-        arr: [{foo: true}]
-      }
+        arr: [{ foo: true }],
+      },
     });
 
     expect(serialize(instanceA, schema)).toEqual({
       a: {
-        arr: [{foo: true}]
-      }
+        arr: [{ foo: true }],
+      },
     });
-  })
+  });
 });
