@@ -1,4 +1,6 @@
 const { createModel, DUMMY_VALUES } = require('./init');
+const Sequelize = require('sequelize');
+const sequelize = new Sequelize('sqlite::memory:');
 const serialize = require('../lib/index');
 
 describe('Serializers', () => {
@@ -238,4 +240,63 @@ describe('Serializers', () => {
       id: null,
     });
   });
+
+  it('anyOf with conflicting subproperties', () => {
+    class ModelA extends Sequelize.Model {}
+
+    ModelA.init(
+      {
+        a: Sequelize.DataTypes.JSONB,
+      },
+      { sequelize },
+    );
+  
+    const schema = {
+      type: 'object',
+      properties: {
+        a: {
+          anyOf: [
+            {
+              type: 'object',
+              properties: {
+                arr: {
+                  type: 'object',
+                  properties: {
+                    foo: {
+                      type: 'boolean'
+                    }
+                  }
+                },
+              },
+            },
+            {
+              type: 'object',
+              properties: {
+                arr: {
+                  type: 'object',
+                  properties: {
+                    bar: {
+                      type: 'boolean'
+                    }
+                  }
+                },
+              },
+            },
+          ]
+        },
+      },
+    };
+
+    const instanceA = new ModelA({
+      a: {
+        arr: [{foo: true}]
+      }
+    });
+
+    expect(serialize(instanceA, schema)).toEqual({
+      a: {
+        arr: [{foo: true}]
+      }
+    });
+  })
 });
