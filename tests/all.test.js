@@ -69,18 +69,25 @@ describe('Serializers', () => {
           type: 'string',
         },
         modelsB: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              b: {
-                type: 'integer',
-              },
-              c: {
-                type: 'boolean',
+          anyOf: [
+            {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  b: {
+                    type: 'integer',
+                  },
+                  c: {
+                    type: 'boolean',
+                  },
+                },
               },
             },
-          },
+            {
+              type: 'null',
+            },
+          ],
         },
       },
     };
