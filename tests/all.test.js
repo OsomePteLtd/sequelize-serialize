@@ -1,4 +1,6 @@
+const Sequelize = require('sequelize');
 const { createModel, DUMMY_VALUES } = require('./init');
+
 const serialize = require('../lib/index');
 
 describe('Serializers', () => {
@@ -67,18 +69,25 @@ describe('Serializers', () => {
           type: 'string',
         },
         modelsB: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              b: {
-                type: 'integer',
-              },
-              c: {
-                type: 'boolean',
+          anyOf: [
+            {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  b: {
+                    type: 'integer',
+                  },
+                  c: {
+                    type: 'boolean',
+                  },
+                },
               },
             },
-          },
+            {
+              type: 'null',
+            },
+          ],
         },
       },
     };
@@ -130,7 +139,9 @@ describe('Serializers', () => {
 
     expect(serialize(instanceB, schema)).toEqual({
       a: 'x',
-      modelA: { b: 777, c: true },
+      modelA: {
+        a: 'x', b: 777, c: true, id: null,
+      },
     });
   });
 
@@ -180,21 +191,25 @@ describe('Serializers', () => {
     };
 
     const instanceA = new ModelA(DUMMY_VALUES);
-    const instanceB1 = new ModelB(DUMMY_VALUES);
+    const instanceB1 = new ModelB({ a: 'x' });
     const instanceB2 = new ModelB(DUMMY_VALUES);
     instanceA.modelsB = [instanceB1, instanceB2];
 
     expect(serialize(instanceA, schema)).toEqual({
       a: 'x',
       modelsB: [
-        { b: 777, c: true },
-        { b: 777, c: true },
+        {
+          a: 'x', id: null,
+        },
+        {
+          a: 'x', b: 777, c: true, id: null,
+        },
       ],
     });
   });
 
   it('Object schema without properties', () => {
-    const TestModel = createModel();
+    const TestModel = createModel('TestModel', { a: Sequelize.DataTypes.JSONB });
 
     const schema = {
       type: 'object',
@@ -213,8 +228,14 @@ describe('Serializers', () => {
       additionalProperties: false,
     };
 
-    const instance = new TestModel({ ...DUMMY_VALUES, a: {} });
-    expect(serialize(instance, schema)).toEqual({ a: {} });
+    const instance = new TestModel({ ...DUMMY_VALUES, a: DUMMY_VALUES });
+    expect(serialize(instance, schema)).toEqual({
+      a: {
+        a: 'x',
+        b: 777,
+        c: true,
+      },
+    });
   });
 
   it('Resource as empty array', () => {
@@ -236,6 +257,64 @@ describe('Serializers', () => {
       b: 777,
       c: true,
       id: null,
+    });
+  });
+
+  it('anyOf with conflicting nested properties', () => {
+    const ModelA = createModel('ModelA', { a: Sequelize.DataTypes.JSONB });
+
+    const schema = {
+      type: 'object',
+      properties: {
+        a: {
+          anyOf: [
+            {
+              type: 'object',
+              properties: {
+                arr: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      foo: {
+                        type: 'boolean',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            {
+              type: 'object',
+              properties: {
+                arr: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      bar: {
+                        type: 'boolean',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          ],
+        },
+      },
+    };
+
+    const instanceA = new ModelA({
+      a: {
+        arr: [{ foo: true }],
+      },
+    });
+
+    expect(serialize(instanceA, schema)).toEqual({
+      a: {
+        arr: [{ foo: true }],
+      },
     });
   });
 });

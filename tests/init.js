@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize');
 
-const sequelize = new Sequelize('sqlite::memory:');
+const sequelize = new Sequelize('sqlite::memory:', { logging: false });
 
 const DUMMY_VALUES = {
   a: 'x',
@@ -8,19 +8,14 @@ const DUMMY_VALUES = {
   c: true,
 };
 
-function createModel() {
-  class TestModel extends Sequelize.Model {}
-
-  TestModel.init(
+function createModel(modelName = 'TestModel', props = {}) {
+  return sequelize.define(modelName,
     {
       a: Sequelize.DataTypes.STRING,
       b: Sequelize.DataTypes.INTEGER,
       c: Sequelize.DataTypes.BOOLEAN,
-    },
-    { sequelize },
-  );
-
-  return TestModel;
+      ...props,
+    });
 }
 
 module.exports = {
